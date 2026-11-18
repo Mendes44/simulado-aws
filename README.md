@@ -1,37 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Simulado AWS SAA-C03
 
-## Getting Started
+Aplicação Next.js para praticar questões, corrigir respostas e revisar tentativas.
 
-First, run the development server:
+## Desenvolvimento
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- `npm ci`: instala as dependências do lockfile.
+- `npm run dev`: inicia o servidor local.
+- `npm run lint`: verifica o código.
+- `npm run build`: valida e gera a versão de produção.
+- `npm start`: serve a versão de produção.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Organização
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `app/page.tsx`: entrada da página.
+- `app/layout.tsx`: idioma, estilos globais e metadados.
+- `app/opengraph-image.tsx` e `app/twitter-image.tsx`: miniatura PNG para compartilhamento.
+- `features/exam/types.ts`: contratos de questões, respostas e tentativas.
+- `features/exam/data/`: questões e apresentação dos domínios.
+- `features/exam/hooks/use-exam.ts`: estados, cronômetro, navegação e persistência.
+- `features/exam/components/`: configuração, prova, resultado, ranking, histórico e revisão.
+- `features/exam/utils.ts`: formatação, embaralhamento e correção.
+- `features/exam/constants.ts`: chaves de armazenamento e letras das alternativas.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Dados e regras
 
-## Learn More
+As tentativas e o último nome ficam no `localStorage` do navegador. O ranking é local ao navegador; não existe um banco compartilhado entre usuários. As chaves existentes foram mantidas para preservar o histórico.
 
-To learn more about Next.js, take a look at the following resources:
+A nota usa a estimativa linear já existente: `100 + (acertos / total) * 900`, arredondada. O corte do simulado é 720. Essa fórmula não reproduz o cálculo estatístico da certificação oficial.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Para incluir questões, edite `data/questions.ts` e mantenha os IDs únicos e estáveis: o histórico usa esses IDs para recuperar o enunciado. Os índices das alternativas começam em zero.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Compartilhamento e publicação
 
-## Deploy on Vercel
+A miniatura é gerada pelo Next.js em 1200 × 630 pixels. O endereço público está em `metadataBase`, no layout; atualize-o se o domínio mudar. As redes sociais podem manter prévias antigas em cache após uma publicação.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-"# simulado-aws" 
+A publicação continua pelo fluxo existente do projeto na Vercel.
