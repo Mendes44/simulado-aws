@@ -1,5 +1,9 @@
 'use client';
 
+import { QuestionReferences } from './question-references';
+import { QuestionExplanation } from './question-explanation';
+import { QuestionOrigin } from './question-origin';
+
 import type React from 'react';
 import { Award, CheckCircle2, XCircle, Clock, ChevronRight, Sparkles, Check, KeyRound } from 'lucide-react';
 import { getDomainMeta } from '../data/domains';
@@ -70,6 +74,7 @@ export function ExamSession({ controller }: { controller: Pick<ExamController, '
 
                 {/* Cartão da Questão */}
                 <div className="bg-slate-800/75 border border-slate-700/80 rounded-2xl p-5 sm:p-7 shadow-xl">
+                  <QuestionOrigin question={currentQuestion} />
                   <p className="text-base sm:text-lg font-semibold text-white leading-relaxed mb-6">
                     {currentQuestion.question}
                   </p>
@@ -173,11 +178,10 @@ export function ExamSession({ controller }: { controller: Pick<ExamController, '
                       <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-700/70">
                         <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-[#FF9900]" />
-                          Resumo para Fixação na Prova
+                          {currentQuestion.optionExplanations ? 'Comentários por alternativa' : 'Resumo para Fixação na Prova'}
                         </div>
-                        <p className="text-sm text-slate-200 leading-relaxed">
-                          {currentQuestion.summary}
-                        </p>
+                        <QuestionExplanation question={currentQuestion} />
+                        <QuestionReferences question={currentQuestion} />
                       </div>
                     </div>
                   )}

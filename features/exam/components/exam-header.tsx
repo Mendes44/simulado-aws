@@ -1,6 +1,7 @@
 'use client';
 
 import { Trophy, History, Play, Cloud } from 'lucide-react';
+import { QUESTIONS_DB } from '../data/questions';
 
 import type { ExamController } from '../hooks/use-exam';
 
@@ -24,7 +25,7 @@ export function ExamHeader({ controller }: { controller: Pick<ExamController, 'a
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Banco Oficial de 30 Questões • Nota de Corte: 720/1000
+                {QUESTIONS_DB.length} questões de prática • Meta: 720/1000
               </p>
             </div>
           </div>

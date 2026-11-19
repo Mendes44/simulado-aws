@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import type { DomainId, QuestionDomain, Question, AnswerRecord, ExamAttempt } from '../types';
+import type { DomainId, QuestionDomain, Question, AnswerRecord, ExamAttempt, QuestionBankId } from '../types';
 import { QUESTIONS_DB } from '../data/questions';
+import { selectQuestionsForBank } from '../data/question-banks';
 import { getDomainMeta } from '../data/domains';
 import { STORAGE_KEY, NAME_STORAGE_KEY } from '../constants';
 import { calculateAwsScore, arraysEqual, shuffleArray, scrollToTop } from '../utils';
@@ -22,7 +23,9 @@ export function useExam() {
   // Estado da Configuração do Simulado
   const [candidateName, setCandidateName] = useState('');
   const [nameError, setNameError] = useState('');
+  // Zero representa todas as questões disponíveis, inclusive após mudar banco ou domínio.
   const [questionCount, setQuestionCount] = useState(10);
+  const [selectedBank, setSelectedBank] = useState<QuestionBankId>('all');
   const [selectedDomain, setSelectedDomain] = useState<DomainId>('Todos');
 
   // Estado do Simulado em Andamento
@@ -73,12 +76,17 @@ export function useExam() {
     return () => clearInterval(timer);
   }, [quizPhase]);
   // CÁLCULO DE QUESTÕES DISPONÍVEIS POR DOMÍNIO
+  const questionsForBank = useMemo(() => selectQuestionsForBank(QUESTIONS_DB, selectedBank), [selectedBank]);
   const availableQuestionsForDomain = useMemo(() => {
-    if (selectedDomain === 'Todos') return QUESTIONS_DB;
-    return QUESTIONS_DB.filter((q) => q.domain === selectedDomain);
-  }, [selectedDomain]);
+    if (selectedDomain === 'Todos') return questionsForBank;
+    return questionsForBank.filter((q) => q.domain === selectedDomain);
+  }, [questionsForBank, selectedDomain]);
+  const effectiveQuestionCount = questionCount === 0
+    ? availableQuestionsForDomain.length
+    : Math.min(questionCount, availableQuestionsForDomain.length);
   // INICIAR SIMULADO (COM SCROLL/FOCO NO CAMPO DE NOME SE VAZIO)
   const handleStartQuiz = () => {
+    if (effectiveQuestionCount === 0) return;
     const trimmed = candidateName.trim();
     if (!trimmed) {
       setNameError('Por favor, informe seu nome acima para registrar no Ranking.');
@@ -95,7 +103,7 @@ export function useExam() {
     }
 
     const pool = shuffleArray(availableQuestionsForDomain);
-    const actualCount = Math.min(questionCount, pool.length);
+    const actualCount = effectiveQuestionCount;
     const chosen = pool.slice(0, actualCount);
 
     setQuizQuestions(chosen);
@@ -171,6 +179,7 @@ export function useExam() {
       passed,
       timeSeconds: elapsedSeconds,
       domainFilter: selectedDomain,
+      bankId: selectedBank,
       createdAt,
       answers: userAnswers
     };
@@ -195,7 +204,8 @@ export function useExam() {
     userAnswers,
     candidateName,
     elapsedSeconds,
-    selectedDomain
+    selectedDomain,
+    selectedBank
   ]);
   // DADOS DERIVADOS: RANKING E HISTÓRICO
   const rankedAttempts = useMemo(() => {
@@ -266,7 +276,7 @@ export function useExam() {
   };
 
   // Expõe os estados e ações usados pelas telas, sem duplicar o cronômetro ou o histórico.
-  return { nameInputRef, attempts, setAttempts, loadingHistory, setLoadingHistory, saveSuccess, setSaveSuccess, activeTab, setActiveTab, candidateName, setCandidateName, nameError, setNameError, questionCount, setQuestionCount, selectedDomain, setSelectedDomain, quizPhase, setQuizPhase, quizQuestions, setQuizQuestions, currentIdx, setCurrentIdx, selectedOptions, setSelectedOptions, isConfirmed, setIsConfirmed, userAnswers, setUserAnswers, elapsedSeconds, setElapsedSeconds, showExitModal, setShowExitModal, latestResult, setLatestResult, historySearch, setHistorySearch, historyStatusFilter, setHistoryStatusFilter, inspectingAttempt, setInspectingAttempt, availableQuestionsForDomain, handleStartQuiz, currentQuestion, handleToggleOption, handleConfirmAnswer, handleNextOrFinish, rankedAttempts, filteredHistory, domainBreakdown, handleSwitchTab, confirmExitQuiz, openAttemptInspection };
+  return { selectedBank, setSelectedBank, questionsForBank, effectiveQuestionCount, nameInputRef, attempts, setAttempts, loadingHistory, setLoadingHistory, saveSuccess, setSaveSuccess, activeTab, setActiveTab, candidateName, setCandidateName, nameError, setNameError, questionCount, setQuestionCount, selectedDomain, setSelectedDomain, quizPhase, setQuizPhase, quizQuestions, setQuizQuestions, currentIdx, setCurrentIdx, selectedOptions, setSelectedOptions, isConfirmed, setIsConfirmed, userAnswers, setUserAnswers, elapsedSeconds, setElapsedSeconds, showExitModal, setShowExitModal, latestResult, setLatestResult, historySearch, setHistorySearch, historyStatusFilter, setHistoryStatusFilter, inspectingAttempt, setInspectingAttempt, availableQuestionsForDomain, handleStartQuiz, currentQuestion, handleToggleOption, handleConfirmAnswer, handleNextOrFinish, rankedAttempts, filteredHistory, domainBreakdown, handleSwitchTab, confirmExitQuiz, openAttemptInspection };
 }
 
 export type ExamController = ReturnType<typeof useExam>;

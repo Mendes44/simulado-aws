@@ -1,15 +1,19 @@
 'use client';
 
+import { OfficialStudyResources } from './official-study-resources';
+
 import { Award, CheckCircle2, Play, Filter, User, AlertCircle, BarChart3 } from 'lucide-react';
+import { QUESTION_BANKS, selectQuestionsForBank } from '../data/question-banks';
 import { QUESTIONS_DB } from '../data/questions';
+import type { QuestionBankId } from '../types';
 import { DOMAINS } from '../data/domains';
 import { DomainIcon } from './domain-icon';
 
 import type { ExamController } from '../hooks/use-exam';
 
 // Configuração do candidato, domínio e quantidade de questões.
-export function ExamSetup({ controller }: { controller: Pick<ExamController, 'nameInputRef' | 'candidateName' | 'setCandidateName' | 'nameError' | 'setNameError' | 'questionCount' | 'setQuestionCount' | 'selectedDomain' | 'setSelectedDomain' | 'quizPhase' | 'availableQuestionsForDomain' | 'handleStartQuiz'> }) {
-  const { nameInputRef, candidateName, setCandidateName, nameError, setNameError, questionCount, setQuestionCount, selectedDomain, setSelectedDomain, quizPhase, availableQuestionsForDomain, handleStartQuiz } = controller;
+export function ExamSetup({ controller }: { controller: Pick<ExamController, 'selectedBank' | 'setSelectedBank' | 'questionsForBank' | 'effectiveQuestionCount' | 'nameInputRef' | 'candidateName' | 'setCandidateName' | 'nameError' | 'setNameError' | 'questionCount' | 'setQuestionCount' | 'selectedDomain' | 'setSelectedDomain' | 'quizPhase' | 'availableQuestionsForDomain' | 'handleStartQuiz'> }) {
+  const { selectedBank, setSelectedBank, questionsForBank, effectiveQuestionCount, nameInputRef, candidateName, setCandidateName, nameError, setNameError, questionCount, setQuestionCount, selectedDomain, setSelectedDomain, quizPhase, availableQuestionsForDomain, handleStartQuiz } = controller;
   return (<>{quizPhase === 'setup' && (
               <div className="space-y-6">
                 {/* Banner Hero */}
@@ -17,19 +21,21 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'na
                   <div className="absolute -right-12 -top-12 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
                   <div className="relative z-10 max-w-2xl">
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-orange-500/15 text-[#FF9900] border border-orange-500/30 mb-3">
-                      <Award className="w-3.5 h-3.5" /> Preparatório Certificação Oficial
+                      <Award className="w-3.5 h-3.5" /> Preparatório independente SAA-C03
                     </span>
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
                       AWS Certified Solutions Architect – Associate{' '}
                       <span className="text-[#FF9900]">(SAA-C03)</span>
                     </h2>
                     <p className="text-slate-300 text-sm sm:text-base mt-2.5 leading-relaxed">
-                      Treine com questões reais no padrão do exame, receba correção imediata com
-                      resumo técnico para fixação e descubra sua nota na escala oficial da AWS (100
-                      a 1000 pontos).
+                      Treine com questões de prática no formato do exame, receba correção imediata com
+                      resumo técnico para fixação e acompanhe sua nota estimada na escala de 100
+                      a 1000 pontos.
                     </p>
                   </div>
                 </div>
+
+                <OfficialStudyResources />
 
                 {/* Formulário de Configuração */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -70,22 +76,36 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'na
                       )}
                     </div>
 
+                    {/* O banco selecionado limita a lista e os contadores de domínio. */}
+                    <div>
+                      <label htmlFor="questionBank" className="mb-2 block text-sm font-bold text-slate-200">Banco de questões</label>
+                      <select id="questionBank" value={selectedBank} onChange={(event) => {
+                        setSelectedBank(event.target.value as QuestionBankId);
+                        setSelectedDomain('Todos');
+                        setQuestionCount(0);
+                      }} className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white">
+                        {QUESTION_BANKS.map((bank) => <option key={bank.id} value={bank.id}>{bank.label} ({selectQuestionsForBank(QUESTIONS_DB, bank.id).length} questões)</option>)}
+                      </select>
+                      <p className="mt-2 text-xs text-slate-400">Os PDFs mantêm seus gabaritos e comentários por alternativa. Questões repetidas entre PDFs aparecem uma vez em Todos os bancos.</p>
+                    </div>
+
                     {/* Tamanho do Simulado */}
                     <div>
                       <label className="text-sm font-bold text-slate-200 mb-2.5 flex items-center gap-2">
                         <BarChart3 className="w-4 h-4 text-[#FF9900]" />
                         Tamanho do Simulado
                       </label>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[
                           { count: 10, label: 'Rápido', desc: '10 questões' },
                           { count: 20, label: 'Intermediário', desc: '20 questões' },
-                          { count: 30, label: 'Completo', desc: '30 questões' }
+                          { count: 30, label: 'Treino longo', desc: '30 questões' },
+                          { count: 0, label: 'Todas disponíveis', desc: `${availableQuestionsForDomain.length} questões` }
                         ].map((opt) => {
                           const isSelected = questionCount === opt.count;
                           return (
                             <button
-                              key={opt.count}
+                              key={opt.label}
                               type="button"
                               onClick={() => setQuestionCount(opt.count)}
                               className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
@@ -99,7 +119,7 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'na
                                   isSelected ? 'text-[#FF9900]' : 'text-white'
                                 }`}
                               >
-                                {opt.count}
+                                {opt.count === 0 ? availableQuestionsForDomain.length : opt.count}
                               </div>
                               <div className="text-xs font-bold text-slate-200">{opt.label}</div>
                               <div className="text-[11px] text-slate-400">{opt.desc}</div>
@@ -125,8 +145,8 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'na
                           const isSelected = selectedDomain === dom.id;
                           const countInDom =
                             dom.id === 'Todos'
-                              ? QUESTIONS_DB.length
-                              : QUESTIONS_DB.filter((q) => q.domain === dom.id).length;
+                              ? questionsForBank.length
+                              : questionsForBank.filter((q) => q.domain === dom.id).length;
                           return (
                             <button
                               key={dom.id}
@@ -160,7 +180,8 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'na
                           );
                         })}
                       </div>
-                      {availableQuestionsForDomain.length < questionCount && (
+                      {availableQuestionsForDomain.length === 0 && <p role="status" className="mt-2 text-sm text-amber-300">Este banco não possui questões nesse domínio. Escolha outro domínio.</p>}
+                      {availableQuestionsForDomain.length > 0 && availableQuestionsForDomain.length < questionCount && (
                         <p className="text-xs text-amber-400 mt-2.5 flex items-center gap-1.5">
                           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                           Este domínio possui {availableQuestionsForDomain.length} questões no
@@ -181,10 +202,11 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'na
                     <button
                       type="button"
                       onClick={handleStartQuiz}
-                      className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#FF9900] to-amber-500 hover:from-amber-400 hover:to-[#FF9900] text-slate-950 font-extrabold text-base shadow-xl shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={effectiveQuestionCount === 0}
+                      className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#FF9900] to-amber-500 hover:from-amber-400 hover:to-[#FF9900] text-slate-950 font-extrabold text-base shadow-xl shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Play className="w-5 h-5 fill-slate-950" />
-                      Iniciar Simulado ({Math.min(questionCount, availableQuestionsForDomain.length)}{' '}
+                      Iniciar Simulado ({effectiveQuestionCount}{' '}
                       Questões)
                     </button>
                   </div>
@@ -194,7 +216,7 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'na
                     <div className="space-y-4">
                       <h3 className="text-base font-bold text-white flex items-center gap-2">
                         <Award className="w-5 h-5 text-[#FF9900]" />
-                        Regras do Exame Oficial
+                        Como funciona este simulado
                       </h3>
                       <ul className="space-y-3 text-sm text-slate-300">
                         <li className="flex items-start gap-2.5">

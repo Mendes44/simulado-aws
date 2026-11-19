@@ -1,4 +1,6 @@
 import type { Question } from '../types';
+import { PRACTICE_QUESTIONS } from './practice-questions';
+import { DPCN_QUESTIONS } from './dpcn';
 
 // Banco de questões: os IDs são usados para reconstruir os gabaritos do histórico.
 export const QUESTIONS_DB: Question[] = [
@@ -541,6 +543,8 @@ export const QUESTIONS_DB: Question[] = [
     keyword: 'WORM Estrito (Nem Root Apaga) = S3 Object Lock Compliance',
     summary:
       'O S3 Object Lock no modo Compliance garante WORM (Write-Once-Read-Many) absoluto: nenhum usuário, nem mesmo o root da conta AWS, consegue excluir ou sobrescrever o objeto durante o período de retenção. (No modo Governance, usuários com permissão especial podem burlar a trava).'
-  }
+  },
+  ...PRACTICE_QUESTIONS,
+  ...DPCN_QUESTIONS
 ];
 

@@ -1,9 +1,14 @@
 'use client';
 
+import { QuestionReferences } from './question-references';
+import { QuestionExplanation } from './question-explanation';
+import { QuestionOrigin } from './question-origin';
+
 import { useState, useMemo } from 'react';
 import { BookOpen, CheckCircle2, XCircle, Sparkles, Check, ArrowLeft, KeyRound } from 'lucide-react';
 import type { AnswerRecord, ExamAttempt, EnrichedAnswer } from '../types';
 import { QUESTIONS_DB } from '../data/questions';
+import { getQuestionBankLabel } from '../data/question-banks';
 import { getDomainMeta } from '../data/domains';
 import { OPTION_LETTERS } from '../constants';
 import { formatTime, formatDate } from '../utils';
@@ -75,7 +80,7 @@ export function DetailedReviewSection({
                 </span>
               </div>
               <p className="text-sm text-slate-400 mt-0.5">
-                {formatDate(headerInfo.createdAt)} • Pontuação AWS:{' '}
+                {formatDate(headerInfo.createdAt)} • {getQuestionBankLabel(headerInfo.bankId)} • Pontuação AWS:{' '}
                 <span className="text-orange-400 font-semibold">{headerInfo.awsScore}/1000</span> •{' '}
                 {headerInfo.correctCount}/{headerInfo.totalQuestions} acertos • Tempo:{' '}
                 {formatTime(headerInfo.timeSeconds)}
@@ -184,6 +189,7 @@ export function DetailedReviewSection({
                   </span>
                 </div>
 
+                <QuestionOrigin question={q} />
                 <p className="text-slate-100 font-medium leading-relaxed mb-4">{q.question}</p>
 
                 <div className="space-y-2 mb-4">
@@ -244,13 +250,14 @@ export function DetailedReviewSection({
                 <div className="bg-slate-900/90 border border-orange-500/30 rounded-xl p-4">
                   <div className="flex items-center justify-between gap-2 flex-wrap mb-1.5">
                     <span className="text-xs font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" /> Resumo para Fixação na Prova
+                      <Sparkles className="w-3.5 h-3.5" /> {q.optionExplanations ? 'Comentários por alternativa' : 'Resumo para Fixação na Prova'}
                     </span>
                     <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-500/15 text-orange-300 border border-orange-500/30 flex items-center gap-1">
                       <KeyRound className="w-3 h-3" /> {q.keyword}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-300 leading-relaxed">{q.summary}</p>
+                  <QuestionExplanation question={q} />
+                  <QuestionReferences question={q} />
                 </div>
               </div>
             );

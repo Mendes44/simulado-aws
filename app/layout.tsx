@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://simulado-aws-pi.vercel.app'),
   title: 'Simulado AWS SAA-C03 | Solutions Architect Associate',
   description:
-    'Treine com questões reais da certificação AWS SAA-C03, correção imediata com resumo de fixação, pontuação oficial (100–1000) e ranking.',
+    'Treine com questões de prática para a certificação AWS SAA-C03, correção imediata com resumo de fixação, pontuação estimada (100–1000) e ranking.',
   openGraph: {
     title: 'Simulado AWS SAA-C03 — Solutions Architect Associate',
     description:
-      'Teste seus conhecimentos na escala oficial da AWS (corte 720/1000) com feedback instantâneo, resumo técnico e histórico de gabaritos.',
+      'Teste seus conhecimentos com nota estimada (meta 720/1000) com feedback instantâneo, resumo técnico e histórico de gabaritos.',
     url: 'https://simulado-aws-pi.vercel.app',
     siteName: 'Simulado AWS SAA-C03',
     locale: 'pt_BR',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Simulado AWS SAA-C03 — Solutions Architect Associate',
     description:
-      'Questões no padrão oficial da prova AWS, correção imediata, nota 100–1000 e ranking.',
+      'Questões de prática no formato SAA-C03, correção imediata, nota 100–1000 e ranking.',
   },
 };
 
