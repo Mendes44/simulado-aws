@@ -61,3 +61,15 @@ A questão 18 do Simulado 3 não tem página de comentários. Seu enunciado e al
 O gabarito dos materiais foi mantido para o treino. As questões 11 e 16 do Simulado 5 incluem notas separadas com documentação AWS sobre os limites de API keys como autorização e sobre a política KMS necessária ao Auto Scaling. Isso sinaliza ressalvas identificadas no material, sem apresentar os PDFs como questões oficiais ou como uma revisão técnica completa.
 
 Os PDFs e caminhos locais não são publicados. Cada questão mostra arquivo, número e páginas de origem. Todas disponíveis acompanha o banco e o domínio selecionados; a seleção é registrada nas novas tentativas sem invalidar históricos anteriores.
+
+## DevMendes, prova completa e mapas mentais
+
+A logo fornecida está em public/brand/devmendes.png, preservada. O favicon é convertido a partir da mesma imagem. O cabeçalho e a miniatura de compartilhamento usam a marca DevMendes.
+
+O padrão é Prova completa: 65 questões em 130 minutos. O sorteio aproxima os pesos 30/26/24/20 por maiores restos, sem repetir IDs. Na prova é possível pular, voltar, revisar e entregar; o gabarito aparece somente ao concluir. A contagem regressiva usa o relógio real e verifica o tempo também ao retornar à aba. Ao zerar, entrega automaticamente, incluindo questões sem resposta como erros. A entrega é protegida contra duplicidade.
+
+Os treinos de 10, 20, 30 ou todas mantêm os filtros por banco/domínio, cronômetro progressivo e correção imediata. Todas acompanha os filtros. Novos campos opcionais de modo e tempo preservam a leitura do histórico antigo. O progresso em andamento ainda não é recuperado após recarregar a página.
+
+A prova oficial tem 50 questões pontuadas e 15 não pontuadas, não identificadas. Este simulado corrige todas as 65 e mantém uma estimativa linear; não tenta reproduzir a pontuação oficial ou garantir perguntas reais. Fonte: https://aws.amazon.com/certification/certified-solutions-architect-associate/
+
+Os PDFs estáticos em public/mind-maps estão disponíveis na tela inicial: quatro mapas por domínio e uma coletânea. Cada página contém fontes AWS clicáveis e a data da revisão. Os pesos orientam prioridade por domínio, sem alegar estatísticas de frequência por assunto. Para regenerar com Python e ReportLab, execute scripts/generate-mind-maps.py; as fontes Arial do Windows são usadas.

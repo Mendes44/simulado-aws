@@ -1,6 +1,7 @@
 'use client';
 
-import { Trophy, History, Play, Cloud } from 'lucide-react';
+import { Trophy, History, Play } from 'lucide-react';
+import Image from 'next/image';
 import { QUESTIONS_DB } from '../data/questions';
 
 import type { ExamController } from '../hooks/use-exam';
@@ -12,10 +13,11 @@ export function ExamHeader({ controller }: { controller: Pick<ExamController, 'a
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Branding */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF9900] to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20 shrink-0">
-              <Cloud className="w-6 h-6 text-slate-950" />
+            <div className="relative h-12 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-14 sm:w-28">
+              <Image src="/brand/devmendes.png" alt="Logo DevMendes Desenvolvimento Web" fill sizes="(max-width: 640px) 96px, 112px" priority className="object-cover" />
             </div>
             <div>
+              <p className="mb-0.5 text-xs font-extrabold tracking-wider text-sky-400">DevMendes</p>
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-white">
                   Simulado <span className="text-[#FF9900]">AWS SAA-C03</span>

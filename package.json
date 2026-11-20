@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:exam": "node scripts/check-exam-rules.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.75.0",
@@ -25,3 +26,4 @@
     "typescript": "^5"
   }
 }
+

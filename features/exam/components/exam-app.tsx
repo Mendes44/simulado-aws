@@ -8,6 +8,7 @@ import { ExamResult } from './exam-result';
 import { Ranking } from './ranking';
 import { AttemptHistory } from './attempt-history';
 import { ExitDialog } from './exit-dialog';
+import { ExamFinishDialog } from './exam-finish-dialog';
 
 // Monta as telas sobre uma única sessão compartilhada.
 export function ExamApp() {
@@ -39,11 +40,11 @@ export function ExamApp() {
       </main>
       {/* MODAL DE CONFIRMAÇÃO DE SAÍDA                                      */}
       <ExitDialog controller={controller} />
+      <ExamFinishDialog controller={controller} />
 
       {/* Rodapé */}
       <footer className="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
-        Simulado Preparatório AWS Certified Solutions Architect – Associate (SAA-C03) • Bons
-        estudos!
+        DevMendes · Simulado preparatório AWS SAA-C03 · Bons estudos!
       </footer>
     </div>
   );

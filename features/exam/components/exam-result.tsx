@@ -12,6 +12,11 @@ export function ExamResult({ controller }: { controller: Pick<ExamController, 's
   const { saveSuccess, quizPhase, setQuizPhase, latestResult, domainBreakdown, handleSwitchTab } = controller;
   return (<>{quizPhase === 'result' && latestResult && (
               <div className="space-y-6">
+                <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 text-sm text-sky-100">
+                  <p className="font-bold">{latestResult.mode === 'exam' ? 'Prova completa · 65 questões · 130 minutos' : 'Treino com correção imediata'}</p>
+                  {latestResult.timedOut && <p className="mt-1" role="status">Tempo esgotado. Suas respostas foram entregues automaticamente.</p>}
+                  <p className="mt-1">{latestResult.answers.filter((answer) => answer.selectedIndices.length !== answer.correctIndices.length).length} questão(ões) sem resposta completa. A nota estimada considera todas as questões; não reproduz o cálculo estatístico oficial da AWS.</p>
+                </div>
                 {/* Card Principal de Resultado */}
                 <div
                   className={`relative overflow-hidden rounded-3xl border-2 p-6 sm:p-8 shadow-2xl ${
@@ -32,11 +37,11 @@ export function ExamResult({ controller }: { controller: Pick<ExamController, 's
                         >
                           {latestResult.passed ? (
                             <>
-                              <CheckCircle2 className="w-4 h-4" /> APROVADO NA AWS SAA-C03
+                              <CheckCircle2 className="w-4 h-4" /> META ATINGIDA NO SIMULADO
                             </>
                           ) : (
                             <>
-                              <XCircle className="w-4 h-4" /> REPROVADO (CORTE: 720)
+                              <XCircle className="w-4 h-4" /> ABAIXO DA META (720)
                             </>
                           )}
                         </span>
@@ -48,7 +53,7 @@ export function ExamResult({ controller }: { controller: Pick<ExamController, 's
                       </h2>
                       <p className="text-slate-300 text-sm mt-1.5">
                         {latestResult.passed
-                          ? 'Você atingiu a pontuação mínima exigida no exame oficial da AWS.'
+                          ? 'Você atingiu a meta de estudo. Esta nota é uma estimativa do simulado.'
                           : 'Revise os erros no gabarito abaixo usando os resumos de fixação e tente novamente.'}
                       </p>
                       <div className="mt-3 flex items-center justify-center md:justify-start gap-2 text-xs">
@@ -64,7 +69,7 @@ export function ExamResult({ controller }: { controller: Pick<ExamController, 's
                     {/* Placar AWS 100 - 1000 */}
                     <div className="bg-slate-950/80 border border-slate-700/80 rounded-2xl p-6 text-center min-w-[200px] shrink-0">
                       <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Pontuação AWS
+                        Pontuação estimada
                       </div>
                       <div
                         className={`text-5xl font-black mt-1 ${

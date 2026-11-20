@@ -1,6 +1,8 @@
 'use client';
 
 import { OfficialStudyResources } from './official-study-resources';
+import { MindMaps } from './mind-maps';
+import { EXAM_QUESTION_COUNT } from '../exam-rules';
 
 import { Award, CheckCircle2, Play, Filter, User, AlertCircle, BarChart3 } from 'lucide-react';
 import { QUESTION_BANKS, selectQuestionsForBank } from '../data/question-banks';
@@ -12,8 +14,8 @@ import { DomainIcon } from './domain-icon';
 import type { ExamController } from '../hooks/use-exam';
 
 // Configuração do candidato, domínio e quantidade de questões.
-export function ExamSetup({ controller }: { controller: Pick<ExamController, 'selectedBank' | 'setSelectedBank' | 'questionsForBank' | 'effectiveQuestionCount' | 'nameInputRef' | 'candidateName' | 'setCandidateName' | 'nameError' | 'setNameError' | 'questionCount' | 'setQuestionCount' | 'selectedDomain' | 'setSelectedDomain' | 'quizPhase' | 'availableQuestionsForDomain' | 'handleStartQuiz'> }) {
-  const { selectedBank, setSelectedBank, questionsForBank, effectiveQuestionCount, nameInputRef, candidateName, setCandidateName, nameError, setNameError, questionCount, setQuestionCount, selectedDomain, setSelectedDomain, quizPhase, availableQuestionsForDomain, handleStartQuiz } = controller;
+export function ExamSetup({ controller }: { controller: Pick<ExamController, 'isExamMode' | 'selectedBank' | 'setSelectedBank' | 'questionsForBank' | 'effectiveQuestionCount' | 'nameInputRef' | 'candidateName' | 'setCandidateName' | 'nameError' | 'setNameError' | 'questionCount' | 'setQuestionCount' | 'selectedDomain' | 'setSelectedDomain' | 'quizPhase' | 'availableQuestionsForDomain' | 'handleStartQuiz'> }) {
+  const { isExamMode, selectedBank, setSelectedBank, questionsForBank, effectiveQuestionCount, nameInputRef, candidateName, setCandidateName, nameError, setNameError, questionCount, setQuestionCount, selectedDomain, setSelectedDomain, quizPhase, availableQuestionsForDomain, handleStartQuiz } = controller;
   return (<>{quizPhase === 'setup' && (
               <div className="space-y-6">
                 {/* Banner Hero */}
@@ -28,9 +30,9 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'se
                       <span className="text-[#FF9900]">(SAA-C03)</span>
                     </h2>
                     <p className="text-slate-300 text-sm sm:text-base mt-2.5 leading-relaxed">
-                      Treine com questões de prática no formato do exame, receba correção imediata com
-                      resumo técnico para fixação e acompanhe sua nota estimada na escala de 100
-                      a 1000 pontos.
+                      Faça a prova completa com 65 questões em 130 minutos ou escolha um treino rápido.
+                      No modo prova, revise suas respostas e consulte o gabarito após a entrega.
+                      Nos treinos, receba os comentários a cada questão.
                     </p>
                   </div>
                 </div>
@@ -79,24 +81,25 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'se
                     {/* O banco selecionado limita a lista e os contadores de domínio. */}
                     <div>
                       <label htmlFor="questionBank" className="mb-2 block text-sm font-bold text-slate-200">Banco de questões</label>
-                      <select id="questionBank" value={selectedBank} onChange={(event) => {
+                      <select id="questionBank" disabled={isExamMode} value={selectedBank} onChange={(event) => {
                         setSelectedBank(event.target.value as QuestionBankId);
                         setSelectedDomain('Todos');
                         setQuestionCount(0);
                       }} className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white">
                         {QUESTION_BANKS.map((bank) => <option key={bank.id} value={bank.id}>{bank.label} ({selectQuestionsForBank(QUESTIONS_DB, bank.id).length} questões)</option>)}
                       </select>
-                      <p className="mt-2 text-xs text-slate-400">Os PDFs mantêm seus gabaritos e comentários por alternativa. Questões repetidas entre PDFs aparecem uma vez em Todos os bancos.</p>
+                      <p className="mt-2 text-xs text-slate-400">{isExamMode ? 'A prova completa usa todos os bancos e distribui as questões aproximadamente pelos pesos dos domínios. Para filtrar, escolha um treino abaixo.' : 'Os PDFs mantêm seus gabaritos e comentários por alternativa. Questões repetidas aparecem uma vez em Todos os bancos.'}</p>
                     </div>
 
-                    {/* Tamanho do Simulado */}
+                    {/* Modo e tamanho do simulado */}
                     <div>
                       <label className="text-sm font-bold text-slate-200 mb-2.5 flex items-center gap-2">
                         <BarChart3 className="w-4 h-4 text-[#FF9900]" />
                         Tamanho do Simulado
                       </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {[
+                          { count: EXAM_QUESTION_COUNT, label: 'Prova completa', desc: '130 min · Gabarito no final' },
                           { count: 10, label: 'Rápido', desc: '10 questões' },
                           { count: 20, label: 'Intermediário', desc: '20 questões' },
                           { count: 30, label: 'Treino longo', desc: '30 questões' },
@@ -107,7 +110,13 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'se
                             <button
                               key={opt.label}
                               type="button"
-                              onClick={() => setQuestionCount(opt.count)}
+                              onClick={() => {
+                                setQuestionCount(opt.count);
+                                if (opt.count === EXAM_QUESTION_COUNT) {
+                                  setSelectedBank('all');
+                                  setSelectedDomain('Todos');
+                                }
+                              }}
                               className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                                 isSelected
                                   ? 'bg-orange-500/15 border-[#FF9900] shadow-lg shadow-orange-500/10'
@@ -151,6 +160,7 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'se
                             <button
                               key={dom.id}
                               type="button"
+                              disabled={isExamMode}
                               onClick={() => setSelectedDomain(dom.id)}
                               className={`p-3 rounded-xl border flex items-center justify-between gap-2 transition-all text-left cursor-pointer ${
                                 isSelected
@@ -206,8 +216,7 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'se
                       className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#FF9900] to-amber-500 hover:from-amber-400 hover:to-[#FF9900] text-slate-950 font-extrabold text-base shadow-xl shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Play className="w-5 h-5 fill-slate-950" />
-                      Iniciar Simulado ({effectiveQuestionCount}{' '}
-                      Questões)
+                      {isExamMode ? 'Iniciar prova (65 questões · 130 min)' : `Iniciar Simulado (${effectiveQuestionCount} Questões)`}
                     </button>
                   </div>
 
@@ -222,21 +231,19 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'se
                         <li className="flex items-start gap-2.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                           <span>
-                            <strong className="text-white">Escala AWS:</strong> 100 a 1000 pontos.
+                            <strong className="text-white">Prova completa:</strong> 65 questões em 130 minutos.
                           </span>
                         </li>
                         <li className="flex items-start gap-2.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                           <span>
-                            <strong className="text-white">Nota de Corte:</strong> 720 pontos para
-                            aprovação.
+                            <strong className="text-white">Meta no simulado:</strong> 720 na nota estimada.
                           </span>
                         </li>
                         <li className="flex items-start gap-2.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                           <span>
-                            <strong className="text-white">Feedback Imediato:</strong> Veja na hora
-                            se acertou e o resumo para fixar.
+                            <strong className="text-white">Dois modos:</strong> Prova com gabarito no final; treino com correção imediata.
                           </span>
                         </li>
                         <li className="flex items-start gap-2.5">
@@ -262,6 +269,7 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'se
                     </div>
                   </div>
                 </div>
+                <MindMaps />
               </div>
             )}</>);
 }

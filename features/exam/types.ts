@@ -73,6 +73,9 @@ export interface ExamAttempt {
   domainFilter: DomainId;
   // Opcional para continuar lendo as tentativas anteriores à importação dos PDFs.
   bankId?: QuestionBankId;
+  mode?: 'exam' | 'practice';
+  timeLimitSeconds?: number;
+  timedOut?: boolean;
   createdAt: string;
   answers: AnswerRecord[];
 }

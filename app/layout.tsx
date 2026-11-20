@@ -3,15 +3,15 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://simulado-aws-pi.vercel.app'),
-  title: 'Simulado AWS SAA-C03 | Solutions Architect Associate',
+  title: 'DevMendes | Simulado AWS SAA-C03',
   description:
-    'Treine com questões de prática para a certificação AWS SAA-C03, correção imediata com resumo de fixação, pontuação estimada (100–1000) e ranking.',
+    'Treine com questões de prática para a certificação AWS SAA-C03, prova de 65 questões em 130 minutos, treinos rápidos e mapas mentais para baixar.',
   openGraph: {
     title: 'Simulado AWS SAA-C03 — Solutions Architect Associate',
     description:
-      'Teste seus conhecimentos com nota estimada (meta 720/1000) com feedback instantâneo, resumo técnico e histórico de gabaritos.',
+      'DevMendes: prova de 65 questões em 130 minutos, treinos rápidos, revisão comentada e mapas mentais.',
     url: 'https://simulado-aws-pi.vercel.app',
-    siteName: 'Simulado AWS SAA-C03',
+    siteName: 'DevMendes | Simulado AWS SAA-C03',
     locale: 'pt_BR',
     type: 'website',
   },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Simulado AWS SAA-C03 — Solutions Architect Associate',
     description:
-      'Questões de prática no formato SAA-C03, correção imediata, nota 100–1000 e ranking.',
+      'DevMendes: modo prova, treinos rápidos e mapas mentais SAA-C03 para baixar.',
   },
 };
 

@@ -1,249 +1,109 @@
 'use client';
 
-import { QuestionReferences } from './question-references';
-import { QuestionExplanation } from './question-explanation';
-import { QuestionOrigin } from './question-origin';
-
-import type React from 'react';
-import { Award, CheckCircle2, XCircle, Clock, ChevronRight, Sparkles, Check, KeyRound } from 'lucide-react';
-import { getDomainMeta } from '../data/domains';
+import { Clock, ChevronRight, ChevronLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { OPTION_LETTERS } from '../constants';
 import { formatTime, arraysEqual } from '../utils';
-import { DomainIcon } from './domain-icon';
-
+import { QuestionOrigin } from './question-origin';
+import { QuestionExplanation } from './question-explanation';
+import { QuestionReferences } from './question-references';
 import type { ExamController } from '../hooks/use-exam';
 
-// Questão atual, seleção de alternativas e correção imediata.
-export function ExamSession({ controller }: { controller: Pick<ExamController, 'quizPhase' | 'quizQuestions' | 'currentIdx' | 'selectedOptions' | 'isConfirmed' | 'userAnswers' | 'elapsedSeconds' | 'setShowExitModal' | 'currentQuestion' | 'handleToggleOption' | 'handleConfirmAnswer' | 'handleNextOrFinish'> }) {
-  const { quizPhase, quizQuestions, currentIdx, selectedOptions, isConfirmed, userAnswers, elapsedSeconds, setShowExitModal, currentQuestion, handleToggleOption, handleConfirmAnswer, handleNextOrFinish } = controller;
-  return (<>{quizPhase === 'playing' && currentQuestion && (
-              <div className="space-y-5">
-                {/* Barra Superior de Progresso e Cronômetro */}
-                <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 sm:p-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="text-sm font-extrabold text-white">
-                        Questão {currentIdx + 1}{' '}
-                        <span className="text-slate-400 font-medium">
-                          de {quizQuestions.length}
-                        </span>
-                      </span>
-                      {(() => {
-                        const meta = getDomainMeta(currentQuestion.domain);
-                        return (
-                          <span
-                            className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg border ${meta.bg} ${meta.color} ${meta.border}`}
-                          >
-                            <DomainIcon domain={currentQuestion.domain} className="w-3.5 h-3.5" />
-                            {currentQuestion.domain}
-                          </span>
-                        );
-                      })()}
-                      {currentQuestion.multiSelect && (
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                          Escolha {currentQuestion.requiredCount} alternativas
-                        </span>
-                      )}
-                    </div>
+const primaryButton = 'rounded-xl bg-[#FF9900] px-5 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer';
+const secondaryButton = 'rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer';
 
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-sm font-mono font-bold text-[#FF9900]">
-                        <Clock className="w-4 h-4" />
-                        {formatTime(elapsedSeconds)}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowExitModal(true)}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
-                      >
-                        Sair
-                      </button>
-                    </div>
-                  </div>
+// A mesma questão atende aos dois modos. Gabarito e comentários só são revelados no treino.
+export function ExamSession({ controller }: { controller: ExamController }) {
+  const { quizPhase, currentQuestion, currentIdx, quizQuestions, selectedOptions, isConfirmed, isExamMode,
+    elapsedSeconds, remainingSeconds, answeredCount, answeredQuestionIds, userAnswers,
+    setShowExitModal, setShowFinishModal, handleToggleOption, handleConfirmAnswer, handleNextOrFinish, handleGoToQuestion } = controller;
+  if (quizPhase !== 'playing' || !currentQuestion) return null;
+  const revealAnswer = isConfirmed && !isExamMode;
+  const correct = arraysEqual(selectedOptions, currentQuestion.correctIndices);
 
-                  {/* Barra de progresso */}
-                  <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#FF9900] to-amber-400 transition-all duration-300"
-                      style={{
-                        width: `${((currentIdx + (isConfirmed ? 1 : 0)) / quizQuestions.length) * 100}%`
-                      }}
-                    />
-                  </div>
-                </div>
+  return (
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 sm:p-5" aria-label="Progresso e tempo">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="font-extrabold text-white">Questão {currentIdx + 1} de {quizQuestions.length}</p>
+            <p className="mt-1 text-xs text-slate-400">{isExamMode ? `Modo prova · ${answeredCount} respondidas` : 'Modo treino · Correção imediata'}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="timer" aria-label={isExamMode ? 'Tempo restante' : 'Tempo decorrido'} className={`flex items-center gap-2 rounded-xl border px-3 py-2 font-mono font-bold ${isExamMode && remainingSeconds <= 300 ? 'border-red-400 text-red-300' : 'border-slate-600 text-orange-400'}`}>
+              <Clock className="h-4 w-4" />
+              <span className="text-xs font-sans">{isExamMode ? 'Restante' : 'Decorrido'}</span>
+              {formatTime(isExamMode ? remainingSeconds : elapsedSeconds)}
+            </div>
+            {isExamMode && <button type="button" onClick={() => setShowFinishModal(true)} className={secondaryButton}>Entregar prova</button>}
+            <button type="button" onClick={() => setShowExitModal(true)} className={secondaryButton}>Sair</button>
+          </div>
+        </div>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-900">
+          <div className="h-full bg-orange-500 transition-all" style={{ width: `${(isExamMode ? answeredCount : currentIdx + (isConfirmed ? 1 : 0)) / quizQuestions.length * 100}%` }} />
+        </div>
+        {isExamMode && <p className="mt-3 text-xs text-slate-400">Revise ou pule questões livremente. O gabarito aparece após a entrega; ao zerar o tempo, suas respostas são entregues automaticamente.</p>}
+      </section>
 
-                {/* Cartão da Questão */}
-                <div className="bg-slate-800/75 border border-slate-700/80 rounded-2xl p-5 sm:p-7 shadow-xl">
-                  <QuestionOrigin question={currentQuestion} />
-                  <p className="text-base sm:text-lg font-semibold text-white leading-relaxed mb-6">
-                    {currentQuestion.question}
-                  </p>
+      {isExamMode && (
+        <details className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
+          <summary className="cursor-pointer text-sm font-bold text-slate-200">Navegar pelas 65 questões · {quizQuestions.length - answeredCount} pendentes</summary>
+          <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-10">
+            {quizQuestions.map((question, index) => (
+              <button type="button" key={question.id} onClick={() => handleGoToQuestion(index)} aria-label={`Ir para questão ${index + 1}${answeredQuestionIds.has(question.id) ? ', respondida' : ', pendente'}`} aria-current={index === currentIdx ? 'step' : undefined}
+                className={`rounded-lg border py-2 text-sm font-bold cursor-pointer ${index === currentIdx ? 'border-orange-400 bg-orange-500 text-slate-950' : answeredQuestionIds.has(question.id) ? 'border-sky-500/50 bg-sky-500/15 text-sky-200' : 'border-slate-600 bg-slate-900 text-slate-300'}`}>
+                {index + 1}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-400">Laranja: atual · Azul: respondida · Cinza: pendente</p>
+        </details>
+      )}
 
-                  {/* Alternativas */}
-                  <div className="space-y-3">
-                    {currentQuestion.options.map((optText, optIdx) => {
-                      const isSelected = selectedOptions.includes(optIdx);
-                      const isCorrectOpt = currentQuestion.correctIndices.includes(optIdx);
+      <section className="rounded-2xl border border-slate-700 bg-slate-800/75 p-5 shadow-xl sm:p-7" aria-label="Questão atual">
+        <QuestionOrigin question={currentQuestion} />
+        <p className="mb-2 text-xs font-semibold text-orange-300">{currentQuestion.domain}</p>
+        <h2 className="mb-3 text-base font-semibold leading-relaxed text-white sm:text-lg">{currentQuestion.question}</h2>
+        <p className="mb-5 text-sm text-slate-400">Selecione {currentQuestion.requiredCount} {currentQuestion.requiredCount > 1 ? 'alternativas' : 'alternativa'} · {selectedOptions.length} selecionada(s)</p>
+        <div className="space-y-3">
+          {currentQuestion.options.map((option, index) => {
+            const selected = selectedOptions.includes(index);
+            const right = currentQuestion.correctIndices.includes(index);
+            const tone = revealAnswer ? right ? 'border-emerald-500 bg-emerald-500/15 text-emerald-50' : selected ? 'border-red-500 bg-red-500/15 text-red-100' : 'border-slate-700 bg-slate-900/50 text-slate-400'
+              : selected ? 'border-orange-400 bg-orange-500/15 text-white' : 'border-slate-700 bg-slate-900/70 text-slate-200 hover:border-slate-500';
+            return (
+              <button type="button" key={index} aria-pressed={selected} disabled={revealAnswer} onClick={() => handleToggleOption(index)} className={`flex w-full items-start gap-3 rounded-xl border-2 p-4 text-left text-sm leading-relaxed transition cursor-pointer disabled:cursor-default sm:text-base ${tone}`}>
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-950/40 text-xs font-bold">{OPTION_LETTERS[index]}</span>
+                <span className="flex-1">{option}</span>
+                {revealAnswer && (right ? <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" /> : selected ? <XCircle className="h-5 w-5 shrink-0 text-red-400" /> : null)}
+              </button>
+            );
+          })}
+        </div>
 
-                      let cardClass =
-                        'bg-slate-900/70 border-slate-700 hover:border-slate-500 text-slate-200';
-                      let badgeClass = 'bg-slate-800 text-slate-300 border-slate-600';
-                      let statusIcon: React.ReactNode = null;
+        {revealAnswer && (
+          <div className={`mt-6 rounded-2xl border p-4 sm:p-5 ${correct ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-red-500/40 bg-red-500/10'}`}>
+            <p className={`mb-3 font-extrabold ${correct ? 'text-emerald-400' : 'text-red-400'}`}>{correct ? 'Resposta Correta!' : 'Resposta Incorreta — Veja o porquê:'}</p>
+            <p className="mb-3 text-xs font-semibold text-orange-300">{currentQuestion.keyword}</p>
+            <QuestionExplanation question={currentQuestion} />
+            <QuestionReferences question={currentQuestion} />
+          </div>
+        )}
 
-                      if (!isConfirmed) {
-                        if (isSelected) {
-                          cardClass =
-                            'bg-orange-500/15 border-[#FF9900] text-white shadow-md shadow-orange-500/10';
-                          badgeClass = 'bg-[#FF9900] text-slate-950 border-[#FF9900]';
-                        }
-                      } else {
-                        if (isCorrectOpt) {
-                          cardClass =
-                            'bg-emerald-500/15 border-emerald-500 text-emerald-50 shadow-md shadow-emerald-500/10';
-                          badgeClass = 'bg-emerald-500 text-slate-950 border-emerald-400';
-                          statusIcon = (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                          );
-                        } else if (isSelected && !isCorrectOpt) {
-                          cardClass =
-                            'bg-red-500/15 border-red-500 text-red-50 shadow-md shadow-red-500/10';
-                          badgeClass = 'bg-red-500 text-white border-red-400';
-                          statusIcon = (
-                            <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                          );
-                        } else {
-                          cardClass =
-                            'bg-slate-900/40 border-slate-800 text-slate-500 opacity-75';
-                          badgeClass = 'bg-slate-800/70 text-slate-500 border-slate-700';
-                        }
-                      }
-
-                      return (
-                        <button
-                          key={optIdx}
-                          type="button"
-                          disabled={isConfirmed}
-                          onClick={() => handleToggleOption(optIdx)}
-                          className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3.5 ${cardClass} ${
-                            isConfirmed ? 'cursor-default' : 'cursor-pointer'
-                          }`}
-                        >
-                          <span
-                            className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 transition-colors ${badgeClass}`}
-                          >
-                            {OPTION_LETTERS[optIdx]}
-                          </span>
-                          <span className="flex-1 text-sm sm:text-base leading-relaxed">
-                            {optText}
-                          </span>
-                          {statusIcon}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Resumo para Fixação (aparece após confirmar) */}
-                  {isConfirmed && (
-                    <div
-                      className={`mt-6 rounded-2xl border p-5 transition-all ${
-                        arraysEqual(selectedOptions, currentQuestion.correctIndices)
-                          ? 'bg-emerald-500/10 border-emerald-500/40'
-                          : 'bg-red-500/10 border-red-500/40'
-                      }`}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <div className="flex items-center gap-2">
-                          {arraysEqual(selectedOptions, currentQuestion.correctIndices) ? (
-                            <>
-                              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                              <span className="font-extrabold text-emerald-400">
-                                Resposta Correta!
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="w-5 h-5 text-red-400" />
-                              <span className="font-extrabold text-red-400">
-                                Resposta Incorreta — Veja o porquê:
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-orange-500/20 text-[#FF9900] border border-orange-500/40">
-                          <KeyRound className="w-3.5 h-3.5" />
-                          Palavra-chave: {currentQuestion.keyword}
-                        </span>
-                      </div>
-
-                      <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-700/70">
-                        <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#FF9900]" />
-                          {currentQuestion.optionExplanations ? 'Comentários por alternativa' : 'Resumo para Fixação na Prova'}
-                        </div>
-                        <QuestionExplanation question={currentQuestion} />
-                        <QuestionReferences question={currentQuestion} />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Botões de Ação */}
-                  <div className="mt-6 flex items-center justify-between gap-3 pt-4 border-t border-slate-700/70">
-                    <div className="text-xs text-slate-400">
-                      {!isConfirmed ? (
-                        currentQuestion.multiSelect ? (
-                          <span>
-                            Selecionadas:{' '}
-                            <strong className="text-white">
-                              {selectedOptions.length}/{currentQuestion.requiredCount}
-                            </strong>
-                          </span>
-                        ) : (
-                          <span>Selecione 1 alternativa para confirmar</span>
-                        )
-                      ) : (
-                        <span>
-                          Acertos até agora:{' '}
-                          <strong className="text-emerald-400">
-                            {userAnswers.filter((a) => a.isCorrect).length}
-                          </strong>{' '}
-                          de {userAnswers.length}
-                        </span>
-                      )}
-                    </div>
-
-                    {!isConfirmed ? (
-                      <button
-                        type="button"
-                        onClick={handleConfirmAnswer}
-                        disabled={selectedOptions.length !== currentQuestion.requiredCount}
-                        className={`px-6 py-3 rounded-xl font-extrabold text-sm transition-all flex items-center gap-2 ${
-                          selectedOptions.length === currentQuestion.requiredCount
-                            ? 'bg-[#FF9900] hover:bg-amber-400 text-slate-950 shadow-lg shadow-orange-500/20 cursor-pointer'
-                            : 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                        }`}
-                      >
-                        <Check className="w-4 h-4" />
-                        Confirmar Resposta
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleNextOrFinish}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF9900] to-amber-500 hover:from-amber-400 hover:to-[#FF9900] text-slate-950 font-extrabold text-sm shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2 cursor-pointer"
-                      >
-                        {currentIdx + 1 < quizQuestions.length ? (
-                          <>
-                            Próxima Questão <ChevronRight className="w-4 h-4" />
-                          </>
-                        ) : (
-                          <>
-                            Finalizar Simulado <Award className="w-4 h-4" />
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}</>);
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-700 pt-5">
+          {isExamMode ? (
+            <>
+              <button type="button" disabled={currentIdx === 0} onClick={() => handleGoToQuestion(currentIdx - 1)} className={secondaryButton}><ChevronLeft className="mr-1 inline h-4 w-4" />Anterior</button>
+              <button type="button" onClick={handleNextOrFinish} className={primaryButton}>{currentIdx + 1 < quizQuestions.length ? 'Salvar e avançar' : 'Revisar e entregar'}<ChevronRight className="ml-1 inline h-4 w-4" /></button>
+            </>
+          ) : (
+            <>
+              <span className="text-xs text-slate-400">{isConfirmed ? `Acertos até agora: ${userAnswers.filter((answer) => answer.isCorrect).length} de ${userAnswers.length}` : 'Confirme sua seleção para ver os comentários.'}</span>
+              {!isConfirmed ? <button type="button" onClick={handleConfirmAnswer} disabled={selectedOptions.length !== currentQuestion.requiredCount} className={primaryButton}>Confirmar Resposta</button>
+                : <button type="button" onClick={handleNextOrFinish} className={primaryButton}>{currentIdx + 1 < quizQuestions.length ? 'Próxima Questão' : 'Finalizar Simulado'}</button>}
+            </>
+          )}
+        </div>
+      </section>
+    </div>
+  );
 }

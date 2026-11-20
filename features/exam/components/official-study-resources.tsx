@@ -12,7 +12,7 @@ export function OfficialStudyResources() {
         <li><a className="underline underline-offset-2" href="https://skillbuilder.aws/category/exam-prep/solutions-architect-associate-SAA-C03" target="_blank" rel="noopener noreferrer">Preparação oficial e conjuntos de prática no AWS Skill Builder</a></li>
         <li><a className="underline underline-offset-2" href="https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.html" target="_blank" rel="noopener noreferrer">Guia SAA-C03: domínios, formatos e critérios de avaliação</a></li>
       </ul>
-      <p className="mt-3 text-xs text-slate-400">O exame tem 65 questões e duração de 130 minutos. Este simulado oferece treino com correção imediata e nota estimada; não reproduz a aplicação nem o cálculo oficial.</p>
+      <p className="mt-3 text-xs text-slate-400">O exame tem 65 questões e duração de 130 minutos. O modo prova reproduz a quantidade e a duração; os treinos oferecem correção imediata. A nota é estimada, e o banco é independente.</p>
     </section>
   );
 }
