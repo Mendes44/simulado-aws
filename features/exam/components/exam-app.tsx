@@ -9,6 +9,7 @@ import { Ranking } from './ranking';
 import { AttemptHistory } from './attempt-history';
 import { ExitDialog } from './exit-dialog';
 import { ExamFinishDialog } from './exam-finish-dialog';
+import { CloudSyncStatus } from './cloud-sync-status';
 
 // Monta as telas sobre uma única sessão compartilhada.
 export function ExamApp() {
@@ -20,6 +21,7 @@ export function ExamApp() {
       <ExamHeader controller={controller} />
       {/* CONTEÚDO PRINCIPAL                                                 */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <CloudSyncStatus controller={controller} />
         {/* ABA 1: SIMULADO                                                  */}
         {activeTab === 'simulado' && (
           <>

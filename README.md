@@ -24,7 +24,7 @@ Aplicação Next.js para praticar questões, corrigir respostas e revisar tentat
 
 ## Dados e regras
 
-As tentativas e o último nome ficam no `localStorage` do navegador. O ranking é local ao navegador; não existe um banco compartilhado entre usuários. As chaves existentes foram mantidas para preservar o histórico.
+As tentativas possuem cópia local e são sincronizadas com o Supabase. O ranking é compartilhado; o histórico detalhado é privado por sessão. As chaves locais foram mantidas para migrar tentativas anteriores.
 
 A nota usa a estimativa linear já existente: `100 + (acertos / total) * 900`, arredondada. O corte do simulado é 720. Essa fórmula não reproduz o cálculo estatístico da certificação oficial.
 
@@ -73,3 +73,15 @@ Os treinos de 10, 20, 30 ou todas mantêm os filtros por banco/domínio, cronôm
 A prova oficial tem 50 questões pontuadas e 15 não pontuadas, não identificadas. Este simulado corrige todas as 65 e mantém uma estimativa linear; não tenta reproduzir a pontuação oficial ou garantir perguntas reais. Fonte: https://aws.amazon.com/certification/certified-solutions-architect-associate/
 
 Os PDFs estáticos em public/mind-maps estão disponíveis na tela inicial: quatro mapas por domínio e uma coletânea. Cada página contém fontes AWS clicáveis e a data da revisão. Os pesos orientam prioridade por domínio, sem alegar estatísticas de frequência por assunto. Para regenerar com Python e ReportLab, execute scripts/generate-mind-maps.py; as fontes Arial do Windows são usadas.
+
+## Supabase
+
+O cliente oficial usa lib/supabase/client.ts. A URL e a chave publishable do projeto são públicas e já estão configuradas; NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY permitem sobrescrever ambas no deploy. Não use chaves secret/service_role em código do navegador.
+
+As migrações em supabase/migrations criam exam_attempts, exam_profiles e um gabarito privado para validar as respostas no PostgreSQL. O banco recalcula nota e acertos e bloqueia gravações diretas; reenvios usam o mesmo client_attempt_id para evitar duplicação. RLS restringe o histórico ao auth.uid(). O ranking retorna somente resumo, até 100 tentativas, sem owner_id nem respostas alheias.
+
+Allow anonymous sign-ins deve estar habilitado no painel. A sessão é persistida no navegador e não exige cadastro. Limpar os dados de autenticação ou trocar de dispositivo não recupera a sessão anterior; login permanente ainda não está implementado. A cópia local antiga é migrada automaticamente para a sessão atual e publicada no ranking usando o nome registrado na tentativa.
+
+O aviso de conexão distingue dados locais de resultados sincronizados. Ao reconectar, retornar à aba ou clicar Atualizar ranking, o aplicativo reenvia pendências. Também consulta atualizações a cada 30 segundos enquanto a página está visível. Erros não apagam tentativas locais nem impedem o simulado. Não há sincronização do progresso de uma prova ainda em andamento.
+
+Ao alterar gabaritos ou adicionar questões, atualize exam_private.question_keys com uma nova migração antes de publicar o banco de questões atualizado. A validação de respostas evita aceitar notas enviadas pelo cliente; tempo, identidade de exibição e conhecimento prévio do gabarito ainda podem ser manipulados em um aplicativo público. Este ranking é para estudo, não para certificação ou competição com premiação.

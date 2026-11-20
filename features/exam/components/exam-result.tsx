@@ -59,8 +59,7 @@ export function ExamResult({ controller }: { controller: Pick<ExamController, 's
                       <div className="mt-3 flex items-center justify-center md:justify-start gap-2 text-xs">
                         {saveSuccess && (
                           <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Resultado salvo no Ranking e
-                            Histórico!
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Cópia do resultado salva. Acompanhe a sincronização com o ranking no aviso acima.
                           </span>
                         )}
                       </div>

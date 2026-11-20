@@ -5,7 +5,8 @@ import type { DomainId, QuestionDomain, Question, AnswerRecord, ExamAttempt, Que
 import { QUESTIONS_DB } from '../data/questions';
 import { selectQuestionsForBank } from '../data/question-banks';
 import { getDomainMeta } from '../data/domains';
-import { STORAGE_KEY, NAME_STORAGE_KEY } from '../constants';
+import { NAME_STORAGE_KEY } from '../constants';
+import { useAttemptStore } from './use-attempt-store';
 import { calculateAwsScore, shuffleArray, scrollToTop } from '../utils';
 import { EXAM_QUESTION_COUNT, EXAM_DURATION_SECONDS, selectExamQuestions, createAnswerRecord, completeAnswers } from '../exam-rules';
 
@@ -14,12 +15,9 @@ export function useExam() {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const startedAtRef = useRef(0);
   const finishedRef = useRef(false);
-  const attemptsRef = useRef<ExamAttempt[]>([]);
-  const [attempts, setAttempts] = useState<ExamAttempt[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'simulado' | 'ranking' | 'historico'>('simulado');
   const [candidateName, setCandidateName] = useState('');
+  const { attempts, rankedAttempts, rankingSource, loadingHistory, saveSuccess, setSaveSuccess, saveAttempt, refreshRanking, cloudStatus, cloudError, pendingCount } = useAttemptStore(setCandidateName);
   const [nameError, setNameError] = useState('');
   // 65 é a prova padrão; zero significa todas as questões do filtro no modo treino.
   const [questionCount, setQuestionCount] = useState(EXAM_QUESTION_COUNT);
@@ -41,27 +39,6 @@ export function useExam() {
   const isExamMode = questionCount === EXAM_QUESTION_COUNT;
   const currentQuestion = quizQuestions[currentIdx] ?? null;
   const remainingSeconds = Math.max(0, EXAM_DURATION_SECONDS - elapsedSeconds);
-
-  // Carrega dados após a hidratação. As chaves antigas continuam válidas.
-  useEffect(() => {
-    const loadTimer = window.setTimeout(() => {
-      try {
-        const stored = window.localStorage.getItem(STORAGE_KEY);
-        const parsed = stored ? JSON.parse(stored) : [];
-        if (Array.isArray(parsed)) {
-          attemptsRef.current = parsed;
-          setAttempts(parsed);
-        }
-        const name = window.localStorage.getItem(NAME_STORAGE_KEY);
-        if (name) setCandidateName(name);
-      } catch (error) {
-        console.error('Erro ao ler dados locais:', error);
-      } finally {
-        setLoadingHistory(false);
-      }
-    }, 0);
-    return () => window.clearTimeout(loadTimer);
-  }, []);
 
   const questionsForBank = useMemo(() => selectQuestionsForBank(QUESTIONS_DB, selectedBank), [selectedBank]);
   const availableQuestionsForDomain = useMemo(() => selectedDomain === 'Todos'
@@ -108,23 +85,13 @@ export function useExam() {
       createdAt: new Date().toISOString(),
       answers,
     };
-    const updated = [result, ...attemptsRef.current];
-    attemptsRef.current = updated;
-    setAttempts(updated);
-    // Persistência fora do updater de estado: não produz efeitos duplicados no Strict Mode.
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      setSaveSuccess(true);
-    } catch (error) {
-      setSaveSuccess(false);
-      console.error('Erro ao salvar no localStorage:', error);
-    }
+    saveAttempt(result);
     setLatestResult(result);
     setShowFinishModal(false);
     setShowExitModal(false);
     setQuizPhase('result');
     scrollToTop();
-  }, [quizQuestions, answersWithCurrentSelection, candidateName, isExamMode, selectedDomain, selectedBank]);
+  }, [quizQuestions, answersWithCurrentSelection, candidateName, isExamMode, selectedDomain, selectedBank, saveAttempt]);
 
   // Atualiza a ação de entrega sem reiniciar o relógio a cada seleção de alternativa.
   const finishActionRef = useRef(finishQuiz);
@@ -213,22 +180,21 @@ export function useExam() {
     } else finishQuiz();
   };
 
-  const rankedAttempts = useMemo(() => [...attempts].sort((a, b) => b.awsScore - a.awsScore
-    || a.timeSeconds - b.timeSeconds || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [attempts]);
   const filteredHistory = useMemo(() => [...attempts]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .filter((attempt) => (historyStatusFilter !== 'passed' || attempt.passed)
       && (historyStatusFilter !== 'failed' || !attempt.passed)
       && attempt.candidateName.toLowerCase().includes(historySearch.trim().toLowerCase())), [attempts, historySearch, historyStatusFilter]);
+  const displayedResult = latestResult ? attempts.find((attempt) => attempt.id === latestResult.id) ?? latestResult : null;
   const domainBreakdown = useMemo(() => {
-    if (!latestResult) return [];
+    if (!displayedResult) return [];
     const domains: QuestionDomain[] = ['Segurança', 'Resiliência', 'Alto Desempenho', 'Otimização de Custos'];
     return domains.map((domain) => {
-      const answers = latestResult.answers.filter((answer) => answer.domain === domain);
+      const answers = displayedResult.answers.filter((answer) => answer.domain === domain);
       const correct = answers.filter((answer) => answer.isCorrect).length;
       return { domain, meta: getDomainMeta(domain), correct, total: answers.length, pct: answers.length ? Math.round(correct / answers.length * 100) : null };
     });
-  }, [latestResult]);
+  }, [displayedResult]);
 
   const handleSwitchTab = (tab: 'simulado' | 'ranking' | 'historico') => {
     if (quizPhase === 'playing') { setShowExitModal(true); return; }
@@ -251,11 +217,11 @@ export function useExam() {
     scrollToTop();
   };
 
-  return { isExamMode, remainingSeconds, answeredCount, answeredQuestionIds, showFinishModal, setShowFinishModal, finishQuiz, handleGoToQuestion,
+  return { refreshRanking, cloudStatus, cloudError, pendingCount, rankingSource, isExamMode, remainingSeconds, answeredCount, answeredQuestionIds, showFinishModal, setShowFinishModal, finishQuiz, handleGoToQuestion,
     selectedBank, setSelectedBank, questionsForBank, effectiveQuestionCount, nameInputRef, attempts, loadingHistory, saveSuccess,
     activeTab, setActiveTab, candidateName, setCandidateName, nameError, setNameError, questionCount, setQuestionCount,
     selectedDomain, setSelectedDomain, quizPhase, setQuizPhase, quizQuestions, currentIdx, selectedOptions, isConfirmed, userAnswers,
-    elapsedSeconds, showExitModal, setShowExitModal, latestResult, historySearch, setHistorySearch, historyStatusFilter, setHistoryStatusFilter,
+    elapsedSeconds, showExitModal, setShowExitModal, latestResult: displayedResult, historySearch, setHistorySearch, historyStatusFilter, setHistoryStatusFilter,
     inspectingAttempt, setInspectingAttempt, availableQuestionsForDomain, handleStartQuiz, currentQuestion, handleToggleOption,
     handleConfirmAnswer, handleNextOrFinish, rankedAttempts, filteredHistory, domainBreakdown, handleSwitchTab, confirmExitQuiz, openAttemptInspection };
 }

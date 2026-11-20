@@ -85,3 +85,10 @@ export interface EnrichedAnswer extends AnswerRecord {
   questionData: Question;
 }
 
+
+// O ranking público não inclui respostas de outros estudantes.
+export interface RankingEntry extends Omit<ExamAttempt, 'answers'> {
+  answers?: AnswerRecord[];
+  canReview: boolean;
+  detailId?: string;
+}

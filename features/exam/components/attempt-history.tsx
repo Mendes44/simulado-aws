@@ -6,7 +6,7 @@ import { DetailedReviewSection } from './detailed-review-section';
 
 import type { ExamController } from '../hooks/use-exam';
 
-// Busca, filtros e revisão das tentativas salvas no navegador.
+// Busca, filtros e revisão do histórico privado, com cópia local para estudo offline.
 export function AttemptHistory({ controller }: { controller: Pick<ExamController, 'loadingHistory' | 'activeTab' | 'historySearch' | 'setHistorySearch' | 'historyStatusFilter' | 'setHistoryStatusFilter' | 'inspectingAttempt' | 'setInspectingAttempt' | 'filteredHistory' | 'openAttemptInspection'> }) {
   const { loadingHistory, activeTab, historySearch, setHistorySearch, historyStatusFilter, setHistoryStatusFilter, inspectingAttempt, setInspectingAttempt, filteredHistory, openAttemptInspection } = controller;
   return (<>{activeTab === 'historico' && (
@@ -29,7 +29,7 @@ export function AttemptHistory({ controller }: { controller: Pick<ExamController
                       Histórico de Gabaritos
                     </h2>
                     <p className="text-sm text-slate-400 mt-0.5">
-                      Clique em qualquer tentativa para revisar o que foi marcado em cada questão.
+                      Seu histórico é privado nesta sessão de estudo. Clique em uma tentativa para revisar suas respostas.
                     </p>
                   </div>
                 </div>

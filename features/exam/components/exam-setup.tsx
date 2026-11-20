@@ -49,7 +49,7 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'is
                         className="text-sm font-bold text-slate-200 mb-2 flex items-center gap-2"
                       >
                         <User className="w-4 h-4 text-[#FF9900]" />
-                        Seu Nome (para o Ranking e Histórico) <span className="text-red-400">*</span>
+                        Nome público no ranking <span className="text-red-400">*</span>
                       </label>
                       <input
                         ref={nameInputRef}
@@ -63,7 +63,8 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'is
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') handleStartQuiz();
                         }}
-                        placeholder="Ex: Maria Silva, João Pedro..."
+                        placeholder="Use seu nome ou um apelido"
+                        aria-describedby="public-name-help"
                         maxLength={45}
                         className={`w-full px-4 py-3.5 rounded-xl bg-slate-900 border text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${
                           nameError
@@ -71,6 +72,7 @@ export function ExamSetup({ controller }: { controller: Pick<ExamController, 'is
                             : 'border-slate-700 focus:border-[#FF9900] focus:ring-orange-500/30'
                         }`}
                       />
+                      <p id="public-name-help" className="mt-2 text-xs text-slate-400">Esse nome e seu resumo de resultado aparecem no ranking público. Suas respostas ficam no histórico privado da sessão deste navegador.</p>
                       {nameError && (
                         <p className="text-xs text-red-400 mt-2 flex items-center gap-1.5 font-medium">
                           <AlertCircle className="w-4 h-4 shrink-0" /> {nameError}

@@ -7,18 +7,18 @@ import { formatTime, formatDate, scrollToTop } from '../utils';
 import type { ExamController } from '../hooks/use-exam';
 
 // Classificação das tentativas por pontuação e tempo.
-export function Ranking({ controller }: { controller: Pick<ExamController, 'loadingHistory' | 'activeTab' | 'setActiveTab' | 'setQuizPhase' | 'rankedAttempts' | 'openAttemptInspection'> }) {
-  const { loadingHistory, activeTab, setActiveTab, setQuizPhase, rankedAttempts, openAttemptInspection } = controller;
+export function Ranking({ controller }: { controller: Pick<ExamController, 'rankingSource' | 'loadingHistory' | 'activeTab' | 'setActiveTab' | 'setQuizPhase' | 'rankedAttempts' | 'openAttemptInspection'> }) {
+  const { rankingSource, loadingHistory, activeTab, setActiveTab, setQuizPhase, rankedAttempts, openAttemptInspection } = controller;
   return (<>{activeTab === 'ranking' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
                   <Trophy className="w-7 h-7 text-[#FF9900]" />
-                  Ranking dos Candidatos
+                  {rankingSource === 'global' ? 'Ranking compartilhado' : 'Ranking neste navegador'}
                 </h2>
                 <p className="text-sm text-slate-400 mt-0.5">
-                  Ordenado por maior pontuação AWS (desempate por menor tempo).
+                  {rankingSource === 'global' ? 'Até 100 tentativas, por maior nota estimada e menor tempo. Os gabaritos de outros usuários são privados.' : 'Resultados locais enquanto a conexão com o ranking compartilhado é restabelecida.'}
                 </p>
               </div>
               <button
@@ -126,11 +126,12 @@ export function Ranking({ controller }: { controller: Pick<ExamController, 'load
                             <td className="py-3.5 px-4 whitespace-nowrap text-right">
                               <button
                                 type="button"
-                                onClick={() => openAttemptInspection(att)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700/70 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                                disabled={!att.canReview || !att.answers}
+                                onClick={() => { if (att.answers) openAttemptInspection({ ...att, id: att.detailId ?? att.id, answers: att.answers }); }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700/70 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer disabled:cursor-default disabled:opacity-50"
                               >
                                 <Eye className="w-3.5 h-3.5 text-[#FF9900]" />
-                                Ver
+                                {att.canReview ? 'Ver' : 'Privado'}
                               </button>
                             </td>
                           </tr>
